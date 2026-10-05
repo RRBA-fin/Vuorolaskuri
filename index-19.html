@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vuorolaskuri</title>
+<meta name="description" content="Laskee vuorolistan rivin ja työvuoron mille tahansa päivälle.">
+<meta name="theme-color" content="#14181f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root {
+  --bg: #f4f2ee; --card: #ffffff; --ink: #1b1d22; --muted: #6b6f78; --line: #e3e0da;
+  --accent: #c2410c; --accent-soft: #fdeee6;
+  --aamu: #0e7490; --aamu-bg: #e3f4f8;
+  --paiva: #4d7c0f; --paiva-bg: #edf5e1;
+  --ilta: #b45309; --ilta-bg: #fdf1e0;
+  --yo: #4338ca; --yo-bg: #e9e8fb;
+  --heitto: #be185d; --heitto-bg: #fce7f3;
+  --vapaa: #8a8f98; --vapaa-bg: #efeeeb;
+  --err: #b91c1c; --err-bg: #fee2e2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181f; --card: #1d222b; --ink: #eceae6; --muted: #9aa0aa; --line: #2c323d;
+    --accent: #fb923c; --accent-soft: #3a261a;
+    --aamu: #67d4ea; --aamu-bg: #15323a;
+    --paiva: #a3d65c; --paiva-bg: #253219;
+    --ilta: #fbbf5a; --ilta-bg: #3a2c14;
+    --yo: #a5a0ff; --yo-bg: #24224a;
+    --heitto: #f472b6; --heitto-bg: #3d1a2c;
+    --vapaa: #8a8f98; --vapaa-bg: #232830;
+    --err: #fca5a5; --err-bg: #3b1717;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181f; --card: #1d222b; --ink: #eceae6; --muted: #9aa0aa; --line: #2c323d;
+  --accent: #fb923c; --accent-soft: #3a261a;
+  --aamu: #67d4ea; --aamu-bg: #15323a;
+  --paiva: #a3d65c; --paiva-bg: #253219;
+  --ilta: #fbbf5a; --ilta-bg: #3a2c14;
+  --yo: #a5a0ff; --yo-bg: #24224a;
+  --heitto: #f472b6; --heitto-bg: #3d1a2c;
+  --vapaa: #8a8f98; --vapaa-bg: #232830;
+  --err: #fca5a5; --err-bg: #3b1717;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body {
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: max(12px, env(safe-area-inset-top)) 16px calc(84px + env(safe-area-inset-bottom));
+  -webkit-tap-highlight-color: transparent;
+}
+main { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-top: 4px; }
+h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+.sub { color: var(--muted); font-size: 13px; text-align: right; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+button, input, select {
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 12px;
+}
+input { width: 100%; }
+button { cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 10px; }
+.small { font-size: 13px; color: var(--muted); }
+.hidden { display: none !important; }
+
+/* välilehdet */
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--card); border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(3, 1fr); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.tabs button { border: 0; background: none; padding: 8px 4px; font-size: 13px; color: var(--muted); display: grid; justify-items: center; gap: 2px; }
+.tabs button svg { width: 22px; height: 22px; }
+.tabs button.on { color: var(--accent); font-weight: 600; }
+.view { display: grid; gap: 14px; }
+
+/* päivänäkymä */
+.search { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.search-row { display: grid; grid-template-columns: 44px 1fr 44px; gap: 8px; margin-top: 8px; }
+.search-row button { padding: 0; height: 42px; }
+.search-row input { text-align: center; height: 42px; }
+.msg { font-size: 13px; color: var(--err); margin-top: 6px; }
+.day { margin: 16px 0 4px; font-size: 15px; color: var(--muted); }
+.day b { color: var(--ink); text-transform: capitalize; }
+.code { font-size: 46px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.time { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 3px 9px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+.t-aamu { color: var(--aamu); background: var(--aamu-bg); }
+.t-paiva { color: var(--paiva); background: var(--paiva-bg); }
+.t-ilta { color: var(--ilta); background: var(--ilta-bg); }
+.t-yo { color: var(--yo); background: var(--yo-bg); }
+.t-heitto { color: var(--heitto); background: var(--heitto-bg); }
+.t-vapaa { color: var(--vapaa); background: var(--vapaa-bg); }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.fact { background: var(--bg); border-radius: 10px; padding: 8px 10px; }
+.fact span { display: block; font-size: 12px; color: var(--muted); }
+.fact b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.note { margin-top: 10px; font-size: 14px; padding: 9px 11px; border-radius: 10px; }
+.today-btn { margin-top: 12px; width: 100%; }
+.periods .prow { display: flex; justify-content: space-between; gap: 8px; padding: 8px; border-radius: 10px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.periods .prow.cur { background: var(--accent-soft); }
+
+/* lista */
+.list-head { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 8px 0 6px; }
+.period { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.period-h { padding: 12px 14px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--line); }
+.period-h b { font-size: 16px; white-space: nowrap; }
+.period-h .small { text-align: right; }
+.period.cur .period-h { background: var(--accent-soft); }
+.week-h { padding: 6px 14px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--bg); }
+.drow { display: grid; grid-template-columns: 70px 1fr auto; gap: 10px; align-items: center; padding: 9px 14px; cursor: pointer;
+  font-variant-numeric: tabular-nums; border-top: 1px solid var(--line); }
+.week-h + .drow { border-top: 0; }
+.drow.today { box-shadow: inset 4px 0 0 var(--accent); }
+.drow .d { font-size: 14px; color: var(--muted); }
+.drow .d b { color: var(--ink); font-weight: 600; }
+.drow .s { font-weight: 600; }
+.drow .s small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+.drow .s.off { font-weight: 400; color: var(--muted); }
+.pill { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
+.more { width: 100%; }
+
+/* asetukset */
+.form { display: grid; gap: 12px; }
+.form label { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { padding: 5px 10px; font-size: 13px; border-radius: 999px; }
+.chips button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.err { color: var(--err); background: var(--err-bg); border-color: transparent; }
+.loading { text-align: center; color: var(--muted); padding: 40px 0; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Vuorolaskuri</h1>
+    <span class="sub" id="kuka"></span>
+  </header>
+
+  <div id="virhe" class="card err hidden"></div>
+  <div id="lataus" class="loading">Ladataan vuorolistaa…</div>
+
+  <!-- PÄIVÄ -->
+  <section id="v-paiva" class="view hidden">
+    <div class="card">
+      <form class="search" id="hakuLomake" autocomplete="off">
+        <input id="haku" inputmode="decimal" placeholder="Hae päivä, esim. 24.12.2026">
+        <button class="primary" type="submit">Hae</button>
+      </form>
+      <div class="msg hidden" id="hakuVirhe"></div>
+      <div class="search-row">
+        <button id="edel" aria-label="Edellinen päivä">‹</button>
+        <input type="date" id="pvm" aria-label="Valitse päivä kalenterista">
+        <button id="seur" aria-label="Seuraava päivä">›</button>
+      </div>
+
+      <div class="day" id="paiva"></div>
+      <div><span class="code" id="koodi"></span><span class="badge" id="tyyppi"></span></div>
+      <div class="time" id="aika"></div>
+      <div class="note t-yo hidden" id="huomYo"></div>
+      <div class="note t-heitto hidden" id="huomHeitto"></div>
+      <div class="facts">
+        <div class="fact"><span>Rivi</span><b id="rivi"></b></div>
+        <div class="fact"><span>Rivin viikko</span><b id="viikko"></b></div>
+        <div class="fact"><span>Kalenteriviikko</span><b id="kvk"></b></div>
+      </div>
+      <div class="small" style="margin-top:10px">Työjakso <b style="color:var(--ink)" id="jakso"></b> · jakson päivä <span id="jpv"></span></div>
+      <button class="today-btn hidden" id="tanaan">Palaa tähän päivään</button>
+    </div>
+
+    <div class="card periods">
+      <h2>Tulevat jaksot</h2>
+      <div id="jaksot"></div>
+    </div>
+  </section>
+
+  <!-- LISTA -->
+  <section id="v-lista" class="view hidden">
+    <button class="more" id="aiemmat">Näytä aiemmat jaksot</button>
+    <div class="view" id="lista"></div>
+    <button class="more" id="lisaa">Näytä lisää jaksoja</button>
+  </section>
+
+  <!-- ASETUKSET -->
+  <section id="v-asetukset" class="view hidden">
+    <div class="card form">
+      <h2 style="margin:0">Kenen vuorot</h2>
+      <form id="nimiLomake" class="search" autocomplete="off">
+        <input id="nimi" placeholder="Nimimerkki, esim. Rintani" autocapitalize="characters" spellcheck="false">
+        <button class="primary" type="submit">Tallenna</button>
+      </form>
+      <div class="msg hidden" id="nimiVirhe"></div>
+      <div class="small">Nimimerkit tällä listalla (napauta valitaksesi):</div>
+      <div class="chips" id="nimet"></div>
+      <div class="small" id="viiteInfo"></div>
+    </div>
+
+    <div class="card form">
+      <h2 style="margin:0">Kalenteri</h2>
+      <div class="small">Lataa valitun päivän työjakson vuorot puhelimen kalenteriin.</div>
+      <div class="btns"><button id="ics" class="primary">Lataa jakso (.ics)</button></div>
+    </div>
+
+    <div class="card form">
+      <h2 style="margin:0">Vuorolista</h2>
+      <div class="small">Sovellus lukee repon tiedoston <b>vuorolista.pdf</b>. Kun lista muuttuu, vaihda se PDF repoon samalla nimellä. Voit myös kokeilla toista PDF:ää vain tällä laitteella:</div>
+      <input type="file" id="tiedosto" accept="application/pdf">
+      <div class="btns"><button id="palauta" class="hidden">Käytä taas repon listaa</button></div>
+      <div class="small" id="lahde"></div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs hidden" id="tabs">
+  <button data-v="paiva" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></svg>Päivä</button>
+  <button data-v="lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Lista</button>
+  <button data-v="asetukset"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Asetukset</button>
+</nav>
+
+<script type="module">
+import * as pdfjs from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+
+/* =====================================================================
+   PDF:n jäsennys (Ratapihat / "Vuorotaulut"-raportti)
+   ===================================================================== */
+const AIKA = /^\d{1,2}:\d{2}$/;
+const KOODI = /^\d{6}$/;
+const PAIVARIVI = /^(Maa|Tii|Kes|Tor|Per|Lau|Sun) \d{1,2}-\d{1,2}$/;
+const SARAKE = /Ro:\s*(\d+)\s*$/;
+const pad = t => { const [h, m] = t.split(':'); return h.padStart(2, '0') + ':' + m; };
+
+async function sivunTekstit(page) {
+  const vp = page.getViewport({ scale: 1 });
+  const tc = await page.getTextContent();
+  const nahty = new Set(), out = [];
+  for (const it of tc.items) {
+    const s = (it.str || '').trim();
+    if (!s) continue;
+    const x = it.transform[4], y = vp.height - it.transform[5];
+    const k = s + '|' + x.toFixed(1) + '|' + y.toFixed(1);
+    if (nahty.has(k)) continue; // lihavointi piirtää saman tekstin kahdesti
+    nahty.add(k);
+    out.push({ s, x, y, w: it.width });
+  }
+  return out;
+}
+
+async function jasennaPdf(doc) {
+  const pohja = { nimi: '', jaksoAlku: null, jaksoLoppu: null, paivia: 0, rivit: {}, koodit: {}, varoitukset: [] };
+  for (let p = 1; p <= doc.numPages; p++) {
+    const t = await sivunTekstit(await doc.getPage(p));
+    const pv = /(\d{2})\.(\d{2})\.(\d{4})\s*-\s*(\d{2})\.(\d{2})\.(\d{4})/;
+    const jakso = t.find(i => i.s.includes('Jakso') && pv.test(i.s));
+    if (jakso && !pohja.jaksoAlku) {
+      const m = jakso.s.match(pv);
+      pohja.jaksoAlku = `${m[3]}-${m[2]}-${m[1]}`;
+      pohja.jaksoLoppu = `${m[6]}-${m[5]}-${m[4]}`;
+    }
+    const otsikko = t.find(i => i.s.startsWith('Vuorotaulut:'));
+    if (otsikko && !pohja.nimi) pohja.nimi = otsikko.s.replace('Vuorotaulut:', '').trim();
+
+    const paivat = t.filter(i => PAIVARIVI.test(i.s)).sort((a, b) => a.y - b.y);
+    if (!paivat.length) continue;
+    const rk = paivat.length > 1 ? (paivat.at(-1).y - paivat[0].y) / (paivat.length - 1) : 31.4;
+    const ylaraja = paivat[0].y - rk * 0.47, alaraja = paivat.at(-1).y + rk * 0.53;
+    const paivaIndeksi = y => Math.floor((y - ylaraja) / rk);
+    pohja.paivia = Math.max(pohja.paivia, paivat.length);
+
+    const sarakkeet = t.filter(i => SARAKE.test(i.s)).map(i => ({ nro: +i.s.match(SARAKE)[1], x: i.x, kesk: i.x + i.w / 2, y: i.y }))
+      .sort((a, b) => a.x - b.x);
+    if (!sarakkeet.length) continue;
+    const lev = sarakkeet.length > 1 ? (sarakkeet.at(-1).x - sarakkeet[0].x) / (sarakkeet.length - 1) : 47.8;
+    const sarakkeelle = x => { for (let i = sarakkeet.length - 1; i >= 0; i--) if (x >= sarakkeet[i].kesk - lev / 2 - 1) return sarakkeet[i]; return null; };
+    const rivi = n => (pohja.rivit[n] = pohja.rivit[n] || { nimi: '', vuorot: [] });
+
+    // nimet otsikkorivillä
+    const otsY = sarakkeet[0].y;
+    for (const i of t) {
+      if (i.y < otsY - 20 || i.y >= otsY - 2 || !/^[A-ZÅÄÖ]{3,}$/.test(i.s)) continue;
+      const kesk = i.x + i.w / 2;
+      const s = sarakkeet.reduce((a, b) => Math.abs(b.kesk - kesk) < Math.abs(a.kesk - kesk) ? b : a);
+      if (Math.abs(s.kesk - kesk) < lev / 2) rivi(s.nro).nimi = i.s;
+    }
+
+    const solu = t.filter(i => i.y > ylaraja - 2 && i.y < alaraja && (AIKA.test(i.s) || KOODI.test(i.s)));
+    for (const s of sarakkeet) {
+      const r = rivi(s.nro);
+      r.vuorot = Array.from({ length: paivat.length }, (_, k) => r.vuorot[k] ?? null);
+      const omat = solu.filter(i => sarakkeelle(i.x) === s);
+      const ajat = omat.filter(i => AIKA.test(i.s)), koodit = omat.filter(i => KOODI.test(i.s));
+      const kaytetty = new Set();
+      for (const k of koodit) {
+        // alkuaika on koodin yläpuolella, loppuaika heti sen alla
+        let alku = ajat.filter(a => !kaytetty.has(a) && a.y < k.y - 3 && a.y > k.y - 18).sort((a, b) => b.y - a.y)[0];
+        if (!alku) alku = ajat.find(a => !kaytetty.has(a) && Math.abs(a.y - k.y) < 4); // sivun alareunassa katkennut
+        if (!alku) { pohja.varoitukset.push(`rivi ${s.nro}: koodille ${k.s} ei löytynyt alkuaikaa`); continue; }
+        kaytetty.add(alku);
+        const loppu = ajat.filter(a => !kaytetty.has(a) && a.y >= k.y - 1 && a.y < k.y + 10).sort((a, b) => a.y - b.y)[0];
+        if (loppu) kaytetty.add(loppu);
+        const d = paivaIndeksi(alku.y);
+        if (d < 0 || d >= paivat.length) continue;
+        r.vuorot[d] = { koodi: k.s, alku: pad(alku.s), loppu: loppu ? pad(loppu.s) : null };
+        if (loppu) pohja.koodit[k.s] = { alku: pad(alku.s), loppu: pad(loppu.s) };
+      }
+    }
+  }
+  for (const r of Object.values(pohja.rivit)) {
+    for (const v of r.vuorot) if (v && !v.loppu && pohja.koodit[v.koodi]) v.loppu = pohja.koodit[v.koodi].loppu;
+    r.heitto = !r.vuorot.some(Boolean); // rivi ilman yhtään vuoroa = heittojakso
+  }
+  if (!pohja.jaksoAlku) throw new Error('PDF:stä ei löytynyt jakson päivämääriä ("Jakso: pp.kk.vvvv - pp.kk.vvvv").');
+  if (!Object.keys(pohja.rivit).length) throw new Error('PDF:stä ei löytynyt vuorolistan rivejä.');
+  return pohja;
+}
+
+/* =====================================================================
+   Sovellus
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const VKP = ['su', 'ma', 'ti', 'ke', 'to', 'pe', 'la'];
+const VKP_PITKA = ['sunnuntai', 'maanantai', 'tiistai', 'keskiviikko', 'torstai', 'perjantai', 'lauantai'];
+const DAY = 86400000;
+const varasto = {
+  hae(k, o) { try { const v = localStorage.getItem('vuoro.' + k); return v === null ? o : JSON.parse(v); } catch { return o; } },
+  aseta(k, v) { try { localStorage.setItem('vuoro.' + k, JSON.stringify(v)); } catch {} },
+  poista(k) { try { localStorage.removeItem('vuoro.' + k); } catch {} },
+};
+
+let pohja = null;
+let nimimerkki = (varasto.hae('nimimerkki', 'RINTANI') || 'RINTANI').toUpperCase();
+let valittu = tanaan();
+let listaAlku = -1, listaLoppu = 6; // jaksoja suhteessa kuluvaan jaksoon
+
+// päivämäärät UTC-päivinä (ei kesäaikaongelmia)
+function tanaan() { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
+const isoPv = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const iso = t => new Date(t).toISOString().slice(0, 10);
+const fi = (t, v = false) => { const d = new Date(t); return `${d.getUTCDate()}.${d.getUTCMonth() + 1}.${v ? d.getUTCFullYear() : ''}`; };
+const vkp = t => VKP[new Date(t).getUTCDay()];
+const mod = (a, n) => ((a % n) + n) % n;
+function kalenteriviikko(t) {
+  const d = new Date(t); const wd = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - wd + 3);
+  const eka = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  return 1 + Math.round(((d - eka) / DAY - 3 + ((eka.getUTCDay() + 6) % 7)) / 7);
+}
+
+// laskenta
+const rivienMaara = () => Math.max(...Object.keys(pohja.rivit).map(Number));
+function viiteRivi() {
+  const r = Object.entries(pohja.rivit).find(([, v]) => v.nimi === nimimerkki);
+  return r ? +r[0] : null;
+}
+function laske(t) {
+  const alku = isoPv(pohja.jaksoAlku), L = pohja.paivia, N = rivienMaara();
+  const ero = Math.round((t - alku) / DAY);
+  const k = Math.floor(ero / L), ind = mod(ero, L);
+  const rivi = mod(viiteRivi() - 1 + k, N) + 1;            // rivin 17 jälkeen takaisin riville 1
+  const jaksoAlku = alku + k * L * DAY;
+  const r = pohja.rivit[rivi] || { vuorot: [], heitto: true };
+  return { k, rivi, ind, viikko: Math.floor(ind / 7) + 1, viikkoja: Math.ceil(L / 7),
+    jaksoAlku, jaksoLoppu: jaksoAlku + (L - 1) * DAY, vuoro: r.vuorot[ind] || null, heitto: !!r.heitto };
+}
+function tyyppi(v, heitto) {
+  if (heitto) return ['heitto', 'H-päivä'];
+  if (!v) return ['vapaa', 'Vapaa'];
+  const h = +v.alku.slice(0, 2), lh = v.loppu ? +v.loppu.slice(0, 2) : 0;
+  if (h >= 18) return ['yo', 'Yö'];
+  if (h >= 12) return ['ilta', 'Ilta'];
+  if (lh >= 18) return ['paiva', 'Pitkä päivä'];
+  if (h >= 7) return ['paiva', 'Päivä'];
+  return ['aamu', 'Aamu'];
+}
+const yliYon = v => v && v.loppu && v.loppu < v.alku;
+
+// ---------- päivänäkymä ----------
+function piirraPaiva() {
+  const r = laske(valittu);
+  const [tk, tn] = tyyppi(r.vuoro, r.heitto);
+  $('pvm').value = iso(valittu);
+  $('paiva').innerHTML = `<b>${VKP_PITKA[new Date(valittu).getUTCDay()]}</b> ${fi(valittu, true)}`;
+  $('koodi').textContent = r.heitto ? 'H' : r.vuoro ? r.vuoro.koodi : 'Vapaa';
+  $('tyyppi').textContent = r.heitto ? 'Heittojakso' : tn;
+  $('tyyppi').className = 'badge t-' + tk;
+  $('tyyppi').classList.toggle('hidden', !r.vuoro && !r.heitto);
+  $('aika').textContent = r.vuoro ? `${r.vuoro.alku}–${r.vuoro.loppu ?? '?'}${yliYon(r.vuoro) ? ' (seuraavana päivänä)' : ''}` : r.heitto ? 'Vuoro ilmoitetaan erikseen' : '';
+  const eilen = laske(valittu - DAY);
+  if (yliYon(eilen.vuoro)) { $('huomYo').textContent = `Edellisen päivän yövuoro ${eilen.vuoro.koodi} päättyy klo ${eilen.vuoro.loppu}.`; $('huomYo').classList.remove('hidden'); }
+  else $('huomYo').classList.add('hidden');
+  if (r.heitto) {
+    $('huomHeitto').textContent = 'Heittojakso: tämän päivän vuoro voidaan määrätä edellisenä päivänä klo 17.00 asti. Klo 17 jälkeen ilmoitettua vuoroa ei tarvitse ottaa vastaan. Jakson viikkovapaat ilmoitetaan etukäteen.';
+    $('huomHeitto').classList.remove('hidden');
+  } else $('huomHeitto').classList.add('hidden');
+  $('rivi').textContent = r.rivi + (r.heitto ? ' (H)' : '');
+  $('viikko').textContent = `${r.viikko}/${r.viikkoja}`;
+  $('kvk').textContent = 'vk ' + kalenteriviikko(valittu);
+  $('jakso').textContent = `${fi(r.jaksoAlku)}–${fi(r.jaksoLoppu, true)}`;
+  $('jpv').textContent = `${r.ind + 1}/${pohja.paivia}`;
+  $('tanaan').classList.toggle('hidden', valittu === tanaan());
+
+  const nyt = laske(tanaan());
+  const jl = $('jaksot'); jl.innerHTML = '';
+  for (let j = 0; j < 8; j++) {
+    const a = nyt.jaksoAlku + j * pohja.paivia * DAY, x = laske(a);
+    const tyot = (pohja.rivit[x.rivi]?.vuorot || []).filter(Boolean).length;
+    const el = document.createElement('div');
+    el.className = 'prow' + (j === 0 ? ' cur' : '');
+    el.innerHTML = `<b>${fi(a)}–${fi(x.jaksoLoppu, true)}</b><span class="small">rivi <b style="color:var(--ink)">${x.rivi}</b> · ${x.heitto ? '<span class="pill t-heitto">heittojakso</span>' : tyot + ' vuoroa'}</span>`;
+    el.onclick = () => { valittu = a; piirraPaiva(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+    jl.appendChild(el);
+  }
+}
+
+function tulkitsePaiva(s) {
+  s = s.trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  m = s.match(/^(\d{1,2})[.\/ -](\d{1,2})(?:[.\/ -](\d{2}|\d{4}))?\.?$/);
+  if (!m) return null;
+  let y = m[3] ? +m[3] : new Date().getFullYear();
+  if (y < 100) y += 2000;
+  const t = Date.UTC(y, +m[2] - 1, +m[1]);
+  const d = new Date(t);
+  if (d.getUTCDate() !== +m[1] || d.getUTCMonth() !== +m[2] - 1) return null;
+  return t;
+}
+$('hakuLomake').onsubmit = e => {
+  e.preventDefault();
+  const t = tulkitsePaiva($('haku').value);
+  if (t === null) { $('hakuVirhe').textContent = 'Kirjoita päivä muodossa pp.kk.vvvv, esim. 24.12.2026.'; $('hakuVirhe').classList.remove('hidden'); return; }
+  $('hakuVirhe').classList.add('hidden');
+  $('haku').blur();
+  valittu = t; piirraPaiva();
+};
+$('edel').onclick = () => { valittu -= DAY; piirraPaiva(); };
+$('seur').onclick = () => { valittu += DAY; piirraPaiva(); };
+$('tanaan').onclick = () => { valittu = tanaan(); piirraPaiva(); };
+$('pvm').onchange = e => { if (e.target.value) { valittu = isoPv(e.target.value); piirraPaiva(); } };
+
+// ---------- lista ----------
+function piirraLista() {
+  const nyt = laske(tanaan()), t0 = tanaan(), L = pohja.paivia;
+  const lista = $('lista'); lista.innerHTML = '';
+  for (let j = listaAlku; j <= listaLoppu; j++) {
+    const a = nyt.jaksoAlku + j * L * DAY, x = laske(a);
+    const box = document.createElement('div');
+    box.className = 'period' + (j === 0 ? ' cur' : '');
+    let html = `<div class="period-h"><b>Työjakso ${fi(a)}–${fi(x.jaksoLoppu, true)}</b><span class="small">rivi <b style="color:var(--ink)">${x.rivi}</b>${x.heitto ? ' · <span class="pill t-heitto">heittojakso</span>' : ''}</span></div>`;
+    for (let i = 0; i < L; i++) {
+      const t = a + i * DAY;
+      if (i % 7 === 0) html += `<div class="week-h">Rivin viikko ${i / 7 + 1}/${x.viikkoja} · vk ${kalenteriviikko(t)}</div>`;
+      const v = pohja.rivit[x.rivi]?.vuorot[i] || null;
+      const [tk] = tyyppi(v, x.heitto);
+      const s = x.heitto ? `<span class="s" style="color:var(--heitto)">H</span>`
+        : v ? `<span class="s">${v.koodi}<small>${v.alku}–${v.loppu ?? '?'}</small></span>` : `<span class="s off">vapaa</span>`;
+      const pill = x.heitto ? '' : v ? `<span class="pill t-${tk}">${tyyppi(v)[1]}</span>` : '';
+      html += `<div class="drow${t === t0 ? ' today' : ''}" data-t="${t}"><span class="d"><b>${vkp(t)}</b> ${fi(t)}</span>${s}${pill || '<span></span>'}</div>`;
+    }
+    box.innerHTML = html;
+    lista.appendChild(box);
+  }
+  lista.querySelectorAll('.drow').forEach(el => el.onclick = () => { valittu = +el.dataset.t; naytaNakyma('paiva'); });
+}
+$('aiemmat').onclick = () => { const h = document.documentElement.scrollHeight; listaAlku -= 3; piirraLista(); window.scrollBy(0, document.documentElement.scrollHeight - h); };
+$('lisaa').onclick = () => { listaLoppu += 6; piirraLista(); };
+
+// ---------- asetukset ----------
+function piirraAsetukset() {
+  $('nimi').value = nimimerkki.charAt(0) + nimimerkki.slice(1).toLowerCase();
+  const chips = $('nimet'); chips.innerHTML = '';
+  Object.entries(pohja.rivit).filter(([, v]) => v.nimi).sort((a, b) => a[1].nimi.localeCompare(b[1].nimi, 'fi')).forEach(([n, v]) => {
+    const b = document.createElement('button');
+    b.textContent = v.nimi.charAt(0) + v.nimi.slice(1).toLowerCase();
+    if (v.nimi === nimimerkki) b.className = 'on';
+    b.onclick = () => asetaNimi(v.nimi);
+    chips.appendChild(b);
+  });
+  const vr = viiteRivi();
+  $('viiteInfo').textContent = vr ? `${nimimerkki} on PDF:n jaksolla ${fi(isoPv(pohja.jaksoAlku))}–${fi(isoPv(pohja.jaksoLoppu), true)} rivillä ${vr}. Rivi vaihtuu yhdellä eteenpäin ${pohja.paivia} päivän välein, ja rivin ${rivienMaara()} jälkeen palataan riville 1.` : '';
+  $('kuka').textContent = `${nimimerkki.charAt(0) + nimimerkki.slice(1).toLowerCase()} · ${pohja.nimi}`;
+}
+function asetaNimi(n) {
+  n = n.trim().toUpperCase();
+  if (!Object.values(pohja.rivit).some(v => v.nimi === n)) {
+    $('nimiVirhe').textContent = `Nimimerkkiä "${n}" ei löydy tältä vuorolistalta. Valitse alla olevista.`;
+    $('nimiVirhe').classList.remove('hidden'); return false;
+  }
+  $('nimiVirhe').classList.add('hidden');
+  nimimerkki = n; varasto.aseta('nimimerkki', n);
+  piirraKaikki(); return true;
+}
+$('nimiLomake').onsubmit = e => { e.preventDefault(); if (asetaNimi($('nimi').value)) $('nimi').blur(); };
+
+$('ics').onclick = () => {
+  const r = laske(valittu);
+  const pv = t => iso(t).replace(/-/g, '');
+  const rivit = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Vuorolaskuri//FI', 'CALSCALE:GREGORIAN'];
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+  for (let i = 0; i < pohja.paivia; i++) {
+    const t = r.jaksoAlku + i * DAY;
+    const v = pohja.rivit[r.rivi]?.vuorot[i];
+    if (r.heitto) {
+      rivit.push('BEGIN:VEVENT', `UID:${pv(t)}-H-${nimimerkki}@vuorolaskuri`, `DTSTAMP:${stamp}`,
+        `DTSTART;VALUE=DATE:${pv(t)}`, `DTEND;VALUE=DATE:${pv(t + DAY)}`, 'SUMMARY:H-päivä (heittojakso)', `DESCRIPTION:Rivi ${r.rivi}`, 'END:VEVENT');
+      continue;
+    }
+    if (!v || !v.loppu) continue;
+    rivit.push('BEGIN:VEVENT', `UID:${pv(t)}-${v.koodi}-${nimimerkki}@vuorolaskuri`, `DTSTAMP:${stamp}`,
+      `DTSTART:${pv(t)}T${v.alku.replace(':', '')}00`, `DTEND:${pv(yliYon(v) ? t + DAY : t)}T${v.loppu.replace(':', '')}00`,
+      `SUMMARY:Työvuoro ${v.koodi}`, `DESCRIPTION:Rivi ${r.rivi}`, 'END:VEVENT');
+  }
+  rivit.push('END:VCALENDAR');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rivit.join('\r\n')], { type: 'text/calendar' }));
+  a.download = `vuorot_${nimimerkki.toLowerCase()}_${iso(r.jaksoAlku)}.ics`;
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+
+// ---------- näkymät ----------
+let nakyma = 'paiva';
+function naytaNakyma(v) {
+  nakyma = v;
+  for (const n of ['paiva', 'lista', 'asetukset']) $('v-' + n).classList.toggle('hidden', n !== v);
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  if (v === 'paiva') { piirraPaiva(); window.scrollTo(0, 0); }
+  if (v === 'lista') { piirraLista(); requestAnimationFrame(() => document.querySelector('.drow.today')?.scrollIntoView({ block: 'center' })); }
+  if (v === 'asetukset') { piirraAsetukset(); window.scrollTo(0, 0); }
+}
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => naytaNakyma(b.dataset.v));
+function piirraKaikki() { piirraAsetukset(); if (nakyma === 'paiva') piirraPaiva(); if (nakyma === 'lista') piirraLista(); }
+
+// ---------- PDF:n lataus ----------
+const b64 = buf => { let s = ''; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 8192) s += String.fromCharCode(...u.subarray(i, i + 8192)); return btoa(s); };
+const unb64 = s => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+
+async function lataa(data, lahde) {
+  const doc = await pdfjs.getDocument({ data }).promise;
+  pohja = await jasennaPdf(doc);
+  if (!viiteRivi()) {
+    const eka = Object.values(pohja.rivit).find(v => v.nimi);
+    if (eka) { nimimerkki = eka.nimi; }
+    setTimeout(() => { naytaNakyma('asetukset'); $('nimiVirhe').textContent = 'Tallennettua nimimerkkiä ei löytynyt tältä listalta – valitse nimimerkki.'; $('nimiVirhe').classList.remove('hidden'); });
+  }
+  const heitot = Object.entries(pohja.rivit).filter(([, v]) => v.heitto).map(([n]) => n);
+  $('lahde').textContent = `Käytössä: ${lahde}. Jakso ${fi(isoPv(pohja.jaksoAlku))}–${fi(isoPv(pohja.jaksoLoppu), true)}, ${rivienMaara()} riviä` +
+    (heitot.length ? `, heittojaksot riveillä ${heitot.join(', ')}.` : '.') +
+    (pohja.varoitukset.length ? ` Huom: ${pohja.varoitukset.join('; ')}` : '');
+  $('palauta').classList.toggle('hidden', lahde.startsWith('repon'));
+  $('lataus').classList.add('hidden'); $('virhe').classList.add('hidden'); $('tabs').classList.remove('hidden');
+  piirraAsetukset(); naytaNakyma(nakyma);
+}
+function virhe(e) {
+  console.error(e);
+  $('lataus').classList.add('hidden');
+  $('virhe').textContent = 'Vuorolistan lukeminen epäonnistui: ' + (e.message || e);
+  $('virhe').classList.remove('hidden');
+}
+$('tiedosto').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const buf = await f.arrayBuffer(); await lataa(new Uint8Array(buf.slice(0)), `oma tiedosto ${f.name}`); varasto.aseta('omaPdf', { nimi: f.name, data: b64(buf) }); }
+  catch (err) { virhe(err); }
+};
+$('palauta').onclick = async () => { varasto.poista('omaPdf'); try { await lataaRepo(); } catch (e) { virhe(e); } };
+async function lataaRepo() {
+  const res = await fetch('vuorolista.pdf', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('vuorolista.pdf puuttuu reposta (HTTP ' + res.status + ')');
+  await lataa(new Uint8Array(await res.arrayBuffer()), 'repon vuorolista.pdf');
+}
+(async () => {
+  try {
+    const oma = varasto.hae('omaPdf', null);
+    if (oma) await lataa(unb64(oma.data), `oma tiedosto ${oma.nimi}`); else await lataaRepo();
+  } catch (e) { virhe(e); }
+})();
+
+// jos sovellus jää auki yön yli, siirrytään uuteen päivään
+let viimeTanaan = tanaan();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !pohja) return;
+  const t = tanaan();
+  if (t !== viimeTanaan) { if (valittu === viimeTanaan) valittu = t; viimeTanaan = t; piirraKaikki(); }
+});
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
