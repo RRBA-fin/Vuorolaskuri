@@ -1,6 +1,6 @@
 // Vuorolaskurin service worker: toimii myös ilman verkkoa.
 // Sovellus ja vuorolista haetaan ensin verkosta (jotta uusi lista näkyy heti), ja välimuistista vasta jos verkkoa ei ole.
-const CACHE = 'vuorolaskuri-v4';
+const CACHE = 'vuorolaskuri-v5';
 const TIEDOSTOT = [
   './', 'index.html', 'manifest.json', 'vuorolista.pdf', 'icon-192.png', 'icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs',
@@ -23,7 +23,8 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (url.origin !== location.origin) return;
-  e.respondWith(fetch(e.request).then(res => {
+  // cache: 'no-cache' ohittaa selaimen oman välimuistin, jotta repon päivitykset näkyvät heti
+  e.respondWith(fetch(e.request, { cache: 'no-cache' }).then(res => {
     if (res.ok) { const kopio = res.clone(); caches.open(CACHE).then(c => c.put(e.request, kopio)); }
     return res;
   }).catch(() => caches.match(e.request, { ignoreSearch: true })));
