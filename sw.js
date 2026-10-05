@@ -1,6 +1,6 @@
 // Vuorolaskurin service worker: toimii myös ilman verkkoa.
 // Sovellus ja vuorolista haetaan ensin verkosta (jotta uusi lista näkyy heti), ja välimuistista vasta jos verkkoa ei ole.
-const CACHE = 'vuorolaskuri-v5';
+const CACHE = 'vuorolaskuri-v7';
 const TIEDOSTOT = [
   './', 'index.html', 'manifest.json', 'vuorolista.pdf', 'icon-192.png', 'icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs',
