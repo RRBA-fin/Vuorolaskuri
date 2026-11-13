@@ -1,0 +1,25 @@
+{
+  "_ohje": "Työjaksot ja jaksotunnit (VR: Jaksot ja työajan laskenta, TAL 7 §, JHL). Ajat muodossa h:mm. 'lisatyo' = lisätyökynnys eli jakson lyhennetty työaika (puuttuu, jos jaksossa ei ole työaikaa lyhentäviä pyhiä). 'ylityo' = ylityökynnys (50 %). 'ylityo100' = 100 % ylityön raja.",
+  "normaali": "115:00",
+  "jaksot": [
+    {"nro": "01/26", "alku": "2025-12-01", "loppu": "2025-12-21", "pyhat": ["6.12.2025 Itsenäisyyspäivä (la)"], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.1.2026"},
+    {"nro": "02/26", "alku": "2025-12-22", "loppu": "2026-01-11", "pyhat": ["24.12.2025 Jouluaatto (ke)", "25.12.2025 Joulupäivä (to)", "26.12.2025 Tapaninpäivä (pe)", "1.1.2026 Uudenvuodenpäivä (to)", "6.1.2026 Loppiainen (ti)"], "lisatyo": "75:00", "ylityo": "107:00", "ylityo100": "133:00", "maksupaiva": "13.2.2026"},
+    {"nro": "03/26", "alku": "2026-01-12", "loppu": "2026-02-01", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "13.3.2026"},
+    {"nro": "04/26", "alku": "2026-02-02", "loppu": "2026-02-22", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "13.3.2026"},
+    {"nro": "05/26", "alku": "2026-02-23", "loppu": "2026-03-15", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.4.2026"},
+    {"nro": "06/26", "alku": "2026-03-16", "loppu": "2026-04-05", "pyhat": ["3.4.2026 Pitkäperjantai (pe)"], "lisatyo": "107:00", "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.5.2026"},
+    {"nro": "07/26", "alku": "2026-04-06", "loppu": "2026-04-26", "pyhat": ["6.4.2026 2. pääsiäispäivä (ma)"], "lisatyo": "107:00", "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.5.2026"},
+    {"nro": "08/26", "alku": "2026-04-27", "loppu": "2026-05-17", "pyhat": ["1.5.2026 Vappu (pe)", "14.5.2026 Helatorstai (to)"], "ylityo": "107:00", "ylityo100": "133:00", "maksupaiva": "15.6.2026"},
+    {"nro": "09/26", "alku": "2026-05-18", "loppu": "2026-06-07", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.7.2026"},
+    {"nro": "10/26", "alku": "2026-06-08", "loppu": "2026-06-28", "pyhat": ["19.6.2026 Juhannusaatto (pe)", "20.6.2026 Juhannuspäivä (la)"], "lisatyo": "107:00", "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.7.2026"},
+    {"nro": "11/26", "alku": "2026-06-29", "loppu": "2026-07-19", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "14.8.2026"},
+    {"nro": "12/26", "alku": "2026-07-20", "loppu": "2026-08-09", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.9.2026"},
+    {"nro": "13/26", "alku": "2026-08-10", "loppu": "2026-08-30", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "30.9.2026"},
+    {"nro": "14/26", "alku": "2026-08-31", "loppu": "2026-09-20", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.10.2026"},
+    {"nro": "15/26", "alku": "2026-09-21", "loppu": "2026-10-11", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "13.11.2026"},
+    {"nro": "16/26", "alku": "2026-10-12", "loppu": "2026-11-01", "pyhat": ["1.11.2026 Pyhäinpäivä (la)"], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.12.2026"},
+    {"nro": "17/26", "alku": "2026-11-02", "loppu": "2026-11-22", "pyhat": [], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.12.2026"},
+    {"nro": "01/27", "alku": "2026-11-23", "loppu": "2026-12-13", "pyhat": ["6.12.2026 Itsenäisyyspäivä (su)"], "ylityo": "115:00", "ylityo100": "133:00", "maksupaiva": "15.1.2027"},
+    {"nro": "02/27", "alku": "2026-12-14", "loppu": "2027-01-03", "pyhat": ["24.12.2026 Jouluaatto (to)", "25.12.2026 Joulupäivä (pe)", "26.12.2026 Tapaninpäivä (la)", "1.1.2027 Uudenvuodenpäivä (pe)"], "lisatyo": "91:00", "ylityo": "107:00", "ylityo100": "133:00", "maksupaiva": "31.1.2027"}
+  ]
+}
