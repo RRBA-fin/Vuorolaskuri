@@ -1,0 +1,32 @@
+{
+  "id": "/Vuorolaskuri/?app=vuorolaskuri-2",
+  "name": "Vuorolaskuri",
+  "short_name": "Vuorolaskuri",
+  "description": "Laskee vuorolistan rivin ja työvuoron mille tahansa päivälle.",
+  "start_url": "/Vuorolaskuri/",
+  "scope": "/Vuorolaskuri/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#14181f",
+  "lang": "fi",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
